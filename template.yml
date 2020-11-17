@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: APIGatewayOAuthIntergration that can be triggered by API-Gateway event.
+
+Globals:
+  Function:
+    Runtime: Go 1.x
+    Timeout: 120
+    AutoPublishAlias: develop
+    Environment:
+      Variables:
+        JSON_S3_LOCATION_BUCKET: authorizerbuckets
+        JSON_S3_LOCATION_KEY: example_permissions.json
+        S3_REGION: us-east-1
+
+Resources:
+
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: develop
+      Auth:
+        DefaultAuthorizer: MyOAuthTokenAuthorizer
+        Authorizers: 
+          MyOAuthTokenAuthorizer:
+            FunctionArn: !GetAtt MyAuthFunction.Arn
+
+    MyAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: authorizer/
+      Handler: main
+      Runtime: go1.x
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/lambda-with-full-access-artisinal
