@@ -18,9 +18,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type PermissionAndRourseCombos struct {
-	AbstractName string   `json: "abstractName"`
-	Resources    []string `json:"resources"`
+type PermissionAndResourseCombos struct {
+	//AbstractName is the name of the Permission the user should possess.
+	AbstractName string `json: "abstractName"`
+
+	//Resources is an array of APIGateway AWS ARN which relate to endpoints for the APIGateway
+	//For example rn:aws:execute-api:<Region of API>:<AWS Account of API>:<API ID>/<STAGE>/<HTTP Method>/<Path to API from base "/">"
+	Resources []string `json:"resources"`
 }
 
 var (
@@ -73,7 +77,7 @@ func handleRequest(ctx context.Context, event events.APIGatewayCustomAuthorizerR
 
 }
 
-func readPermissionJSON() ([]PermissionAndRourseCombos, error) {
+func readPermissionJSON() ([]PermissionAndResourseCombos, error) {
 	log.Info("readPermissionJSON function activated")
 
 	sess, err := session.NewSession(&aws.Config{
@@ -100,7 +104,7 @@ func readPermissionJSON() ([]PermissionAndRourseCombos, error) {
 	}
 	bodyString1 := fmt.Sprintf("%s", body1)
 
-	var s3data []PermissionAndRourseCombos
+	var s3data []PermissionAndResourseCombos
 	decoder := json.NewDecoder(strings.NewReader(bodyString1))
 	err = decoder.Decode(&s3data)
 	if err != nil {
@@ -125,7 +129,7 @@ func validateToken(userToken string) (bool, string, error) {
 
 }
 
-func permissionValidation(oauthResp string, perms []PermissionAndRourseCombos) (events.APIGatewayCustomAuthorizerPolicy, error) {
+func permissionValidation(oauthResp string, perms []PermissionAndResourseCombos) (events.APIGatewayCustomAuthorizerPolicy, error) {
 	log.WithField("OAuthResponse", oauthResp).Info("permissionValidation function activated")
 
 	var indexValidPermission int
